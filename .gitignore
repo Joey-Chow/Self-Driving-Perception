@@ -1,0 +1,8 @@
+# Virtual environment
+/venv/
+
+# nuScenes dataset
+data/nuscenes/*
+
+# Output files
+/output/*

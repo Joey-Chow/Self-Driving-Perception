@@ -1,0 +1,36 @@
+# Core dependencies (install first)
+numpy>=1.24.0
+opencv-python>=4.8.0
+matplotlib>=3.7.0
+Pillow>=10.0.0
+
+# PyTorch (install before mmcv)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# nuScenes devkit
+nuscenes-devkit>=1.1.9
+
+# Visualization and utilities
+pypng>=0.20220715.0
+pyquaternion>=0.9.9
+scipy>=1.11.0
+tqdm>=4.65.0
+pyyaml>=6.0
+shapely>=2.0.0
+terminaltables>=3.1.10
+
+# NOTE: MMDetection3D stack should be installed separately using mim
+# After installing the above, run:
+#   pip install openmim
+#   mim install mmengine
+#   mim install "mmcv>=2.0.0"
+#   mim install "mmdet>=3.0.0"
+#   mim install "mmdet3d>=1.4.0"
+
+# Optional: For ONNX export and optimization
+# onnx>=1.14.0
+# onnxruntime-gpu>=1.15.0
+
+# Optional: For tensorboard logging
+# tensorboard>=2.13.0
