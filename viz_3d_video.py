@@ -59,8 +59,8 @@ def draw_ego_car(ax):
     x, y, z = 0, 0, -1.0  # Shift down so LiDAR (0,0,0) is on top
     
     # Define corners
-    dx = l / 2
-    dy = w / 2
+    dx = w / 2
+    dy = l / 2
     dz = h / 2
     
     corners = np.array([
@@ -169,7 +169,7 @@ def render_frame(lidar_points, boxes, output_path=None, dpi=100):
         
     # 4. Set View
     # Focus on the ego vehicle at (0,0,0)
-    limit = 40 # meters
+    limit = 10 # meters
     ax.set_xlim(-limit, limit)
     ax.set_ylim(-limit, limit)
     ax.set_zlim(-10, 10)

@@ -67,7 +67,7 @@ Generates a composite video with solid 3D boxes, class labels, and intensity ren
 
 ```bash
 source venv/bin/activate
-python viz_3d_video.py
+python3 viz_3d_video.py
 Output: output/lidar_3d_viz_composite.mp4
 ```
 
