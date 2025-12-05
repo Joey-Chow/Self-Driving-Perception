@@ -6,10 +6,10 @@ A phased exploration of autonomous driving perception, evolving from 2D multi-vi
 
 - **Objective:** Build a perception stack that processes multi-modal sensor data (Camera + LiDAR) for autonomous driving.
 - **Dataset:** mini-nuScenes v1.0-mini (6 Cameras, 1 LiDAR, Radar).
-- **Models:**
-  - Phase 1: YOLOv8 (2D Object Detection)
-  - Phase 2: PointPillars (3D LiDAR Detection via MMDetection3D)
+- **Models:** PointPillars (3D LiDAR Detection via MMDetection3D)
 - **Output:** Visualization videos demonstrating 2D & 3D situational awareness.
+
+![Demo Visualization](visualization/demo.jpg)
 
 ## Features
 

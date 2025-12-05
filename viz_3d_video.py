@@ -165,7 +165,7 @@ def render_frame(lidar_points, boxes, output_path=None, dpi=100):
         # Add label slightly above the box
         # box.wlh is [w, l, h]
         ax.text(box.center[0], box.center[1], box.center[2] + box.wlh[2]/2 + 0.5, 
-                label, color=color, fontsize=6, ha='center')
+                label, color=color, fontsize=12, ha='center')
         
     # 4. Set View
     # Focus on the ego vehicle at (0,0,0)
@@ -234,11 +234,13 @@ def draw_projected_box(img, box, intrinsic, label=None, color=(0, 255, 0)):
         y_min = np.min(corners_2d[:, 1])
         
         # Draw background for text
-        (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-        cv2.rectangle(img, (x_min, y_min - 20), (x_min + w, y_min), color, -1)
+        font_scale = 0.8
+        thickness = 2
+        (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+        cv2.rectangle(img, (x_min, y_min - h - 10), (x_min + w, y_min), color, -1)
         
         # Draw text (black for contrast)
-        cv2.putText(img, label, (x_min, y_min - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+        cv2.putText(img, label, (x_min, y_min - 5), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 0, 0), thickness)
 
 def main():
     print("Initializing NuScenes Loader...")
