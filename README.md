@@ -1,27 +1,32 @@
 # Self-Driving Perception System
 
-Real-time object detection system with first-person camera view for autonomous driving perception, using YOLOv8 and mini-nuScenes dataset.
+A phased exploration of autonomous driving perception, evolving from 2D multi-view object detection to SOTA 3D LiDAR-based perception using the **nuScenes** dataset.
 
 ## Project Overview
 
-- **Objective**: Detect vehicles, pedestrians, and traffic objects from monocular front camera
-- **Dataset**: mini-nuScenes v1.0-mini (10 scenes, 404 frames, ~4GB)
-- **Model**: YOLOv8 (pretrained on COCO dataset)
-- **Output**: First-person video with bounding boxes and distance estimates
-- **Performance**: Real-time capable (10-20 FPS on CPU)
+- **Objective:** Build a perception stack that processes multi-modal sensor data (Camera + LiDAR) for autonomous driving.
+- **Dataset:** mini-nuScenes v1.0-mini (6 Cameras, 1 LiDAR, Radar).
+- **Models:**
+  - Phase 1: YOLOv8 (2D Object Detection)
+  - Phase 2: PointPillars (3D LiDAR Detection via MMDetection3D)
+- **Output:** Visualization videos demonstrating 2D & 3D situational awareness.
 
 ## Features
 
-- **Multi-object detection**: Cars, buses, trucks, pedestrians, bicycles, motorcycles, traffic lights, stop signs
-- **First-person camera view** with bounding box overlays
-- **Distance estimation** using focal length and bounding box size
-- **Color-coded warnings**: Red (<15m), Orange (15-30m), Green (>30m)
-- **Video output**: MP4 format at 10 fps
-- **Multi-scene processing**: Combines all scenes into single demo video
+- **Composite Visualization**: Synchronized view of Front Camera (Top) and LiDAR Point Cloud (Bottom).
+- **3D Object Rendering**: Solid, semi-transparent 3D bounding boxes in LiDAR view.
+- **Class-Specific Styling**: Color-coded objects (Cyan=Car, Red=Pedestrian, Orange=Truck) with text labels.
+- **Sensor Fusion**: 3D bounding boxes projected onto the 2D camera image.
+- **Point Cloud Features**: LiDAR points colored by intensity to reveal road markings.
+- **Ego Vehicle**: Visualization of the ego car's position and orientation.
 
 ## Quick Start
 
 ### 1. Setup Environment
+
+#### Option A — Phase 1 Environment (Local)
+
+Suitable for running `video_demo.py` and `demo_3d_dual_viz.py`.
 
 ```bash
 # Create virtual environment
@@ -32,200 +37,117 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+#### Option B — Phase 2 Environment (GPU / Linux / Colab)
+
+Required for running `demo_phase2_lidar.py`.
+
+MMDetection3D is difficult to compile on macOS — it is recommended to use **Google Colab**, **Linux**, or any machine with **NVIDIA GPU support**.
+
+---
+
 ### 2. Download Dataset
 
-Download mini-nuScenes dataset (~4GB):
+Download **mini-nuScenes v1.0-mini (~4GB)** from:  
+https://www.nuscenes.org/download
 
-- Visit: https://www.nuscenes.org/download
-- locate "Full dataset (v1.0)"
-- Download: `v1.0-mini.tgz`
-- Extract to: `./data/nuscenes/v1.0-mini/`
+Choose:  
+**Full dataset (v1.0) → mini → `v1.0-mini.tgz`**
 
-### 3. Run Demo
+Extract to:
+./data/nuscenes/
+
+Verify that this path exists:
+./data/nuscenes/v1.0-mini/maps
+
+---
+
+## 3. Run Demos
+
+Generates a composite video with solid 3D boxes, class labels, and intensity rendering.
 
 ```bash
 source venv/bin/activate
-python video_demo.py
+python viz_3d_video.py
+Output: output/lidar_3d_viz_composite.mp4
 ```
-
-**Output**: `output/multi_scene_detection.mp4` - video with detections from 10 scenes (404 frames)
-
-## Usage
-
-### Basic Demo
-
-```bash
-# Run on all scenes (default: 10 scenes, 404 frames)
-python video_demo.py
-```
-
-### Customization
-
-Edit `video_demo.py` to adjust parameters:
-
-```python
-# Line 388: Change model size for accuracy/speed tradeoff
-model_size="n"  # Options: "n" (nano), "s" (small), "m" (medium), "l" (large), "x" (extra-large)
-
-# Line 408: Adjust number of scenes
-num_scenes = min(len(nusc.scene), 10)  # Change 10 to process more/fewer scenes
-
-# Line 435: Adjust video settings
-fps=10.0,              # Frame rate
-conf_threshold=0.5     # Detection confidence (0.0-1.0)
-```
-
-### Model Performance
-
-- **YOLOv8n (nano)**: ~10-20 FPS on CPU, good accuracy - **Default**
-- **YOLOv8s (small)**: ~5-10 FPS on CPU, better accuracy
-- **YOLOv8m (medium)**: ~2-5 FPS on CPU, even better accuracy
-- **YOLOv8l/x**: GPU recommended for real-time performance
-
-## Technical Details
-
-### Detection Pipeline
-
-1. **Input**: CAM_FRONT images (1600×900) from nuScenes dataset
-2. **Detection**: YOLOv8 detects multiple object classes in single pass
-3. **Distance Estimation**: Calculated using bounding box height and camera focal length
-   ```
-   distance = (real_object_height × focal_length) / bbox_height
-   ```
-4. **Color Coding**: Objects colored by distance (Red <15m, Orange 15-30m, Green >30m)
-5. **Video Export**: Annotated frames exported as MP4
-
-### Detected Object Classes
-
-The model detects 8 relevant classes for autonomous driving:
-
-| Class ID | Object            | Color      | Average Height |
-| -------- | ----------------- | ---------- | -------------- |
-| 0        | Person/Pedestrian | Light Blue | 1.7m           |
-| 1        | Bicycle           | Cyan       | 1.5m           |
-| 2        | Car               | Green      | 1.5m           |
-| 3        | Motorcycle        | Magenta    | 1.5m           |
-| 5        | Bus               | Orange     | 3.0m           |
-| 7        | Truck             | Orange-Red | 3.5m           |
-| 9        | Traffic Light     | Yellow     | -              |
-| 11       | Stop Sign         | Red        | -              |
-
-### Distance Estimation
-
-Uses monocular depth estimation via pinhole camera model:
-
-- **Focal length**: 1266 pixels (nuScenes CAM_FRONT calibration)
-- **Method**: Height-based estimation (most reliable for vehicles)
-- **Accuracy**: ±2-3m for objects 10-50m away
-
-### YOLOv8 Model
-
-- **Architecture**: YOLOv8 (You Only Look Once v8)
-- **Training**: Pretrained on COCO dataset (80 classes, 330k images)
-- **Input**: RGB images, any resolution (auto-scaled)
-- **Output**: 2D bounding boxes with class labels and confidence scores
-- **Speed**: Real-time capable on CPU (nano/small models)
 
 ## Project Structure
 
 ```
 self_driving_perception/
-├── video_demo.py               # Main demo script (first-person camera view)
+├── viz_3d_video.py             # [Phase 2] Custom 3D LiDAR Visualizer (Main)
+├── video_demo.py               # [Phase 1] Dual-View 2D Detection (YOLO)
+├── demo_3d_dual_viz.py         # [Phase 2] Legacy 3D GT Visualization
+├── demo_phase2_lidar.py        # [Phase 2] LiDAR Inference (PointPillars)
 ├── data/
-│   ├── nuscenes_loader.py      # nuScenes dataset interface
+│   ├── nuscenes_loader.py      # Enhanced loader: Camera + LiDAR + Calibration
 │   └── nuscenes/v1.0-mini/     # Dataset location
 ├── models/
-│   └── fcos3d_detector.py      # FCOS3D wrapper (legacy, unused)
-├── utils/
-│   ├── camera_geometry.py      # 3D transformations (legacy)
-│   └── bev_transform.py        # BEV projection (legacy)
-├── visualization/
-│   └── bev_renderer.py         # BEV rendering (legacy)
-├── output/
-│   └── multi_scene_detection.mp4  # Generated demo video
-└── requirements.txt            # Python dependencies
+│   └── weights/                # Model weights (.pth) + configs (.py)
+├── output/                     # Generated demo videos
+├── requirements.txt            # Python dependencies for Phase 1
+└── README.md                   # This file
 ```
 
-## Output Example
+## Technical Details
 
-The demo generates a video showing:
+### Phase 1: 2D Pipeline
 
-- **First-person camera view** from vehicle's perspective
-- **Bounding boxes** around detected objects with labels
-- **Distance estimates** in meters for each detected object
-- **Confidence scores** for each detection
-- **Vehicle count overlay** at top of frame
-- **Color-coded warnings** based on proximity
+- **Inputs:** Synchronized `CAM_FRONT` and `CAM_BACK` images
+- **Detection:** YOLOv8n (runs per frame)
+- **Fusion:** Vertical concatenation using `cv2.vconcat` for a split-screen dashboard
+- **Depth Estimation:** Heuristic estimation using bounding-box height and pinhole camera geometry
 
-Example frame annotation:
+---
 
-```
-[Top overlay] Detected Vehicles: 5
+### Phase 2: 3D Pipeline
 
-[Bounding boxes on cars in view]
-car 0.87 | 12.3m  [Red box - close]
-bus 0.92 | 25.8m  [Orange box - medium]
-person 0.78 | 8.5m  [Red box - close]
-```
+**Coordinate Transformation:**
+LiDAR Frame (x, y, z) → Ego Frame → Camera Frame → Image Plane (u, v)
 
-## Status
+**Projection:**  
+3D cuboid corners projected into 2D using the camera intrinsic matrix.
 
-✅ **FULLY FUNCTIONAL**
+**Data Fusion:**  
+Overlay LiDAR-derived spatial data (3D boxes, orientation, coordinates) onto camera RGB frames.
 
-- All dependencies installed
-- Dataset downloaded and configured
-- YOLOv8 model loaded and tested
-- Multi-scene video generation working
-- Successfully processed 10 scenes (404 frames)
-- Output: `output/multi_scene_detection.mp4`
+---
 
 ## Dependencies
 
-### Installed
+### Core
 
-- Python 3.13
-- PyTorch 2.9.1 + torchvision 0.24.1
-- ultralytics 8.3.230 (YOLOv8)
-- OpenCV 4.12.0
-- NumPy 2.2.6
-- nuscenes-devkit 1.1.9
-- Matplotlib, scipy, shapely, etc.
+- Python 3.8+
+- PyTorch
+- OpenCV (`cv2`)
+- NumPy
+- nuscenes-devkit
+- ultralytics (YOLOv8)
 
-### Not Required
+### Optional (Phase 2)
 
-- MMDetection3D (not used in current implementation)
-- CUDA (runs on CPU, GPU optional for speedup)
+- MMDetection3D
+- MMCV
+- CUDA Toolkit (for GPU acceleration)
+
+---
 
 ## Troubleshooting
 
-**"Database version not found"**:
+- **"Dataset not found":**  
+  Ensure the directory exists:
 
-- Ensure dataset is extracted to `./data/nuscenes/v1.0-mini/`
-- Check that `v1.0-mini` folder contains JSON files
+data/nuscenes/v1.0-mini/
 
-**Low detection accuracy**:
+- **"Video format not supported" on macOS:**  
+  Videos use H.264 (`avc1`). Try **VLC** if default macOS apps fail.
 
-- Increase `conf_threshold` in video_demo.py (e.g., 0.7)
-- Use larger model: change `model_size="n"` to `"s"` or `"m"`
+- **"No module named mmdet3d":**  
+  You are running a Phase 2 script without an MMDetection3D environment.  
+  Use **Google Colab** or a **Linux GPU machine**.
 
-**Slow processing**:
-
-- Use smaller model: `model_size="n"` (nano is fastest)
-- Reduce number of scenes: change `num_scenes = 10` to lower value
-- Use GPU if available (automatic detection by PyTorch)
-
-**Video won't play**:
-
-- Install VLC media player
-- Try: `ffmpeg -i output/multi_scene_detection.mp4 -vcodec libx264 output/converted.mp4`
-
-## References
-
-- [nuScenes Dataset](https://www.nuscenes.org/)
-- [YOLOv8 Documentation](https://docs.ultralytics.com/)
-- [nuScenes DevKit](https://github.com/nutonomy/nuscenes-devkit)
-- [COCO Dataset Classes](https://cocodataset.org/#explore)
+---
 
 ## License
 
-MIT License - Educational project for computer vision class
+MIT License — Educational project for autonomous driving perception.
